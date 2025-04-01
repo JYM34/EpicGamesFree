@@ -1,0 +1,29 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+
+# Environnement
+.env
+.env.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Test coverage / build
+coverage/
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
