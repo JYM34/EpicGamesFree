@@ -1,80 +1,76 @@
-const axios = require("axios");
+// epicFreeGames.js
+const axios = require('axios');
+const dayjs = require('dayjs');
 const { getValidImageByType } = require('./Fonctions/imageUtils');
 
-/**
- * 🔍 Récupère les jeux gratuits (actuels et à venir) depuis l’Epic Games Store
- * @returns {Promise<{ currentGames: Array, nextGames: Array }>}
- */
-async function getFreeEpicGames() {
-  // 📡 URL de l’API publique d’Epic Games (pas de clé requise)
-  const url = "https://store-site-backend-static.ak.epicgames.com/freeGamesPromotions?locale=fr-FR&country=FR&allowCountries=FR";
+const defaultOptions = {
+  country: 'FR',
+  locale: 'fr-FR',
+  includeAll: false
+};
 
-  try {
-    // 📥 Requête HTTP via axios
-    const { data } = await axios.get(url);
-    const elements = data?.data?.Catalog?.searchStore?.elements || [];
+async function getEpicFreeGames(options = {}) {
+  const { country, locale, includeAll } = { ...defaultOptions, ...options };
 
-    // 🎮 Deux tableaux de résultats : en cours et à venir
-    const currentGames = [];
-    const nextGames = [];
+  const response = await axios.get('https://store-site-backend-static.ak.epicgames.com/freeGamesPromotions', {
+    params: { country, locale }
+  });
 
-    for (const game of elements) {
-      // ⛔ Ignore les jeux sans promo
-      if (!game.promotions) continue;
+  const elements = response?.data?.data?.Catalog?.searchStore?.elements || [];
 
-      // ❌ Ignore les jeux sans date de fin (ex : démo, etc.)
-      if (game.expiryDate === null) continue;
+  const isBaseGame = (game) => includeAll || game.offerType === 'BASE_GAME' || 'OTHERS';
+  const isFree = (game) => game.price?.totalPrice?.discountPrice === 0;
 
-      // 🔧 Données de base communes
-      const base = {
-        title: game.title,
-        description: game.description,
-        offerType: game.offerType || "",
-        author: game.seller?.name || "Inconnu",
-        image: getValidImageByType(game.title, game.keyImages, 'OfferImageWide'),
-        thumbnail: getValidImageByType(game.title, game.keyImages, 'Thumbnail'),
-        url: game.productSlug
+  const hasCurrentPromotion = (game) => {
+    const promo = game.promotions?.promotionalOffers?.[0]?.promotionalOffers?.[0];
+    if (!promo) return false;
+    return dayjs().isAfter(promo.startDate) && dayjs().isBefore(promo.endDate);
+  };
+
+  const hasUpcomingPromotion = (game) => {
+    const promo = game.promotions?.upcomingPromotionalOffers?.[0]?.promotionalOffers?.[0];
+    if (!promo) return false;
+    return dayjs().add(1, 'week').isAfter(promo.startDate) && dayjs().add(1, 'week').isBefore(promo.endDate);
+  };
+
+  const willBeFree = (game) => {
+    const promo = game.promotions?.upcomingPromotionalOffers?.[0]?.promotionalOffers?.[0];
+    return promo?.discountSetting?.discountPercentage === 0;
+  };
+
+  // 🎯 Formattage final des jeux pour n’exposer que l’essentiel
+  const formatGame = (game, status, color) => {
+    const promo =
+      game.promotions?.promotionalOffers?.[0]?.promotionalOffers?.[0] ||
+      game.promotions?.upcomingPromotionalOffers?.[0]?.promotionalOffers?.[0];
+  
+    return {
+      title: game.title,
+      description: game.description,
+      author: game.seller?.name || "Inconnu",
+      offerType: game.offerType || "",
+      url: game.productSlug
           ? `https://store.epicgames.com/fr/p/${game.productSlug}`
           : "https://store.epicgames.com/fr/free-games",
-        originalPrice: game.price?.totalPrice?.originalPrice ?? 0,
-        discountPrice: game.price?.totalPrice?.discountPrice ?? 0,
-      };
+      effectiveDate: promo?.startDate || game.effectiveDate,
+      expiryDate: promo?.endDate || game.expiryDate,
+      thumbnail: getValidImageByType(game.title, game.keyImages, 'Thumbnail'),
+      price: game.price?.totalPrice?.fmtPrice?.discountPrice || '0',
+      image: getValidImageByType(game.title, game.keyImages, 'OfferImageWide'),
+      status, // 🔖 Exemple : "currentGames" ou "nextGames"
+      color
+    };
+  };
 
-      // ✅ Si un jeu est gratuit actuellement
-      const current = game.promotions.promotionalOffers;
-      if (current?.[0]?.promotionalOffers?.[0]) {
-        const offer = current[0].promotionalOffers[0];
-        currentGames.push({
-          ...base,
-          startDate: offer.startDate,
-          endDate: offer.endDate,
-          status: "currentGames",     // 🔖 Statut pour trier
-          color: 2123412              // 🎨 Couleur (ex : embed)
-        });
-      }
+  const currentGames = elements
+    .filter(game => isBaseGame(game) && isFree(game) && hasCurrentPromotion(game))
+    .map(game => formatGame(game, 'currentGames', 2123412));
 
-      // ⏳ Si un jeu est prévu prochainement
-      const next = game.promotions.upcomingPromotionalOffers;
-      if (next?.[0]?.promotionalOffers?.[0]) {
-        const offer = next[0].promotionalOffers[0];
-        nextGames.push({
-          ...base,
-          startDate: offer.startDate,
-          endDate: offer.endDate,
-          status: "nextGames",        // 🔖 Statut pour trier
-          color: 10038562             // 🎨 Couleur (ex : embed)
-        });
-      }
-    }
+  const nextGames = elements
+    .filter(game => isBaseGame(game) && willBeFree(game) && hasUpcomingPromotion(game))
+    .map(game => formatGame(game, 'nextGames', 10038562));
 
-    return { currentGames, nextGames };
-
-  } catch (err) {
-    // 🚨 Gestion des erreurs
-    console.error("❌ Erreur lors de la récupération des jeux :", err.message);
-    return { currentGames: [], nextGames: [] };
-  }
+  return { currentGames, nextGames };
 }
 
-// 🚀 Export de la fonction principale
-module.exports = { getFreeEpicGames };
+module.exports = { getEpicFreeGames };

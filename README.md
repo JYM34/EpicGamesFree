@@ -1,77 +1,115 @@
-# 🎮 EpicGamesFree
+# 🕹️ EpicGamesFree
 
-> Module Node.js pour récupérer les jeux gratuits du Epic Games Store (actuels et à venir).
-
-<p align="left">
-  <img src="https://ftp.nkconcept.fr/epicgames-logo.png" width="80" alt="Logo EpicGamesFree">
-</p>
+Script Node.js permettant de récupérer les jeux gratuits actuels et à venir sur l’Epic Games Store via leur API publique.  
+Il formate proprement les données pour intégration facile (Discord bot, frontend, etc.).
 
 ---
 
-## ✨ Fonctionnalités
+## 🚀 Fonctionnalités
 
-- Récupère les jeux actuellement **gratuits**
-- Récupère les jeux **à venir** (gratuits bientôt)
-- Retourne un objet structuré `currentGames[]` et `nextGames[]`
-- Donne accès à : titre, description, image, date, prix, URL, etc.
-- Gestion intelligente des images (image principale et miniature)
-- Image personnalisée pour les jeux "Mystery Game"
-- Fallback automatique si aucune image valide n’est disponible
+- 🔍 Récupération des jeux gratuits (`currentGames`)
+- 📅 Prévisualisation des futurs jeux gratuits (`nextGames`)
+- 🧠 Filtrage intelligent : offre active, jeu gratuit, base game uniquement
+- 🎨 Mise en forme : titre, description, prix, image, auteur, dates, slug, etc.
+- 📦 Intégrable facilement dans une API, un bot Discord, un frontend...
 
 ---
 
-## 🔧 Installation
+## 🛠️ Utilisation
+
+### Installation
 
 ```bash
-npm install epic-games-free
+git clone https://github.com/ton-user/ton-repo.git
+cd ton-repo
+npm install
+```
+
+### Exemple simple (`test.js`)
+
+```js
+const { getEpicFreeGames } = require('./index');
+
+getEpicFreeGames({ country: 'FR', locale: 'fr', includeAll: false })
+  .then(({ currentGames, nextGames }) => {
+    console.log('🎮 Jeux gratuits actuels :', currentGames.length);
+    console.log('⏳ Jeux à venir :', nextGames.length);
+  })
+  .catch(console.error);
 ```
 
 ---
 
-## 🧪 Utilisation simple
+## 📦 Format de sortie
 
-```js
-const { getFreeEpicGames } = require("epic-games-free");
+Chaque jeu est renvoyé sous cette forme :
 
-(async () => {
-  const { currentGames, nextGames } = await getFreeEpicGames();
-
-  console.log("Jeux gratuits en cours :");
-  console.table(currentGames);
-
-  console.log("Prochains jeux gratuits :");
-  console.table(nextGames);
-})();
-```
-
----
-
-## 🔁 Format retourné (exemple)
-
-```js
+```json
 {
-  title: 'The Game',
-  description: 'Un super jeu gratuit',
-  author: 'Ubisoft',
-  image: 'https://cdn.epicgames.com/...',
-  url: 'https://store.epicgames.com/fr/p/the-game',
-  startDate: '2025-04-01T16:00:00.000Z',
-  endDate: '2025-04-08T16:00:00.000Z',
-  status: 'currentGames',
-  originalPrice: 1999,
-  discountPrice: 0
+  "title": "Cat Quest II",
+  "description": "...",
+  "author": "Epic Dev Test Account",
+  "offerType": "OTHERS",
+  "url": "https://store.epicgames.com/fr/p/cat-quest-ii-9dbefc",
+  "effectiveDate": "2025-04-03T15:00:00.000Z",
+  "expiryDate": "2025-04-10T15:00:00.000Z",
+  "thumbnail": "https://...",
+  "price": "0",
+  "image": "https://...",
+  "status": "currentGames",
+  "color": 2123412
 }
+```
+
+> 💡 Parfait pour générer des embeds Discord ou afficher dans une UI.
+
+---
+
+## 📁 Structure
+
+```
+.
+├── index.js                # Fonction principale getEpicFreeGames()
+├── test.js                # Script de test rapide
+├── Fonctions/
+│   └── imageUtils.js      # Sélection intelligente d'images + cache
+```
+
+---
+
+## ⚙️ Options
+
+| Option      | Type    | Par défaut | Description                              |
+|-------------|---------|------------|------------------------------------------|
+| `country`   | string  | `"FR"`     | Pays utilisé pour filtrer les offres     |
+| `locale`    | string  | `"fr-FR"`  | Langue des résultats                     |
+| `includeAll`| boolean | `false`    | Inclure tous les types d’offres (`true`) |
+
+---
+
+## ✅ Roadmap possible
+
+- [ ] Ajout d’un cache disque/local
+- [ ] Ajout de tests automatisés (Jest)
+- [ ] Intégration avec un bot Discord
+- [ ] Export au format Markdown / RSS / JSON API
+
+---
+
+## 🧪 Test local
+
+```bash
+node test.js
 ```
 
 ---
 
 ## 📄 Licence
 
-MIT
+MIT – fais-en bon usage.
 
 ---
 
-## 🧠 Crédits
+## ✨ Auteur
 
-Données récupérées depuis le site public :  
-[https://store.epicgames.com/fr/free-games](https://store.epicgames.com/fr/free-games)
+Développé par [TonNom ou Handle] – qualité & clarté avant tout ⚙️

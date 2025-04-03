@@ -4,7 +4,7 @@ const imageCache = new Map();
 const isMysteryGame = (title) => title.toLowerCase().includes("mystery");
 
 const getValidImageByType = (title, keyImages, validType) => {
-    const cacheKey = `${title}_${validType}`;
+    const cacheKey = `${encodeURIComponent(title)}_${validType}`;
     if (imageCache.has(cacheKey)) return imageCache.get(cacheKey);
 
     const localDateTime = new Date().toLocaleString("fr-FR", { timeZone: "Europe/Paris" });

@@ -1,7 +1,7 @@
 {
   "name": "epic-games-free",
-  "version": "1.1.1",
-  "description": "Module pour r\u00e9cup\u00e9rer les jeux gratuits d\u2019Epic Games (actuels et \u00e0 venir).",
+  "version": "1.2.0",
+  "description": "Module pour récupérer les jeux gratuits d’Epic Games (actuels et à venir).",
   "main": "index.js",
   "scripts": {
     "test": "node test.js"
@@ -16,6 +16,7 @@
   "author": "TonNom",
   "license": "MIT",
   "dependencies": {
-    "axios": "^1.6.0"
+    "axios": "^1.6.0",
+    "dayjs": "^1.11.13"
   }
 }

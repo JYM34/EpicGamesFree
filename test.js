@@ -1,26 +1,31 @@
-const { getFreeEpicGames } = require("./index");
+const { getEpicFreeGames } = require("./index");
 
-(async () => {
-  const { currentGames, nextGames } = await getFreeEpicGames();
-  console.clear();
-  console.log("🎮 Jeux actuels :");
-  console.table(currentGames.map(g => ({ 
-    title: g.title, 
-    date: g.startDate,
-    author: g.author,
-    status: g.status,
-    offerType: g.offerType,
-    url: g.url 
-  })));
+// Exemple d'utilisation
+getEpicFreeGames({ country: 'FR', locale: 'fr', includeAll: false })
+  .then((response) => {
+    const elements = response || {};
 
-  console.log("\n⏳ Jeux à venir :");
-  console.table(nextGames.map(g => ({ 
-    title: g.title, 
-    date: g.startDate,
-    author: g.author,
-    status: g.status,
-    offerType: g.offerType,
-    url: g.url 
-  })));
+    const currentGames = elements.currentGames || [];
+    const nextGames = elements.nextGames || [];
 
-})();
+    const allGames = [...currentGames, ...nextGames];
+
+    console.log(`Nombre d'éléments : ${allGames.length}`);
+
+    allGames.forEach((game, i) => {
+      const emoji = game.status === "currentGames" ? "🟢" : "🟡";
+      console.log(`
+    ${emoji} ${game.title}
+       🏷️ Auteur : ${game.author}
+       🕒 Du ${game.effectiveDate} au ${game.expiryDate}
+       💶 Prix : ${game.price}
+       🔗 URL : ${game.url}
+    `);
+    });
+
+    // Afficher une seule fois l’objet complet si besoin
+    //console.log("Structure complète des éléments :");
+    //console.dir(elements, { depth: null });
+
+  })
+  .catch(console.error);
