@@ -1,5 +1,5 @@
 const axios = require("axios");
-const { getValidImageByType } = require('Fonctions/imageUtils');
+const { getValidImageByType } = require('./Fonctions/imageUtils');
 
 /**
  * 🔍 Récupère les jeux gratuits (actuels et à venir) depuis l’Epic Games Store
