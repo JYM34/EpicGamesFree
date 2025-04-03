@@ -1,6 +1,6 @@
 {
   "name": "epic-games-free",
-  "version": "1.0.0",
+  "version": "1.1.1",
   "description": "Module pour r\u00e9cup\u00e9rer les jeux gratuits d\u2019Epic Games (actuels et \u00e0 venir).",
   "main": "index.js",
   "scripts": {
