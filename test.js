@@ -24,8 +24,8 @@ getEpicFreeGames({ country: 'FR', locale: 'fr', includeAll: false })
     });
 
     // Afficher une seule fois l’objet complet si besoin
-    //console.log("Structure complète des éléments :");
-    //console.dir(elements, { depth: null });
+    console.log("Structure complète des éléments :");
+    console.dir(elements, { depth: null });
 
   })
   .catch(console.error);

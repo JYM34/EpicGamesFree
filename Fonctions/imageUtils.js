@@ -23,7 +23,7 @@ const getValidImageByType = (title, keyImages, validType) => {
         return fallback;
     }
 
-    const priorityTypes = [validType, "DieselStoreFrontWide", "VaultClosed", "featuredMedia"];
+    const priorityTypes = [validType, "DieselStoreFrontTall",  "DieselStoreFrontWide", "VaultClosed", "featuredMedia"];
     for (const type of priorityTypes) {
         const found = keyImages.find(img => img?.type === type);
         if (found) {
