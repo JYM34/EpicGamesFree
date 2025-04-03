@@ -14,6 +14,9 @@
 - Récupère les jeux **à venir** (gratuits bientôt)
 - Retourne un objet structuré `currentGames[]` et `nextGames[]`
 - Donne accès à : titre, description, image, date, prix, URL, etc.
+- Gestion intelligente des images (image principale et miniature)
+- Image personnalisée pour les jeux "Mystery Game"
+- Fallback automatique si aucune image valide n’est disponible
 
 ---
 

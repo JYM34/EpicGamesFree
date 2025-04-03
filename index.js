@@ -1,4 +1,5 @@
 const axios = require("axios");
+const { getValidImageByType } = require('../Fonctions/imageUtils');
 
 /**
  * 🔍 Récupère les jeux gratuits (actuels et à venir) depuis l’Epic Games Store
@@ -30,8 +31,8 @@ async function getFreeEpicGames() {
         description: game.description,
         offerType: game.offerType || "",
         author: game.seller?.name || "Inconnu",
-        image: game.keyImages?.find(img => img.type === "OfferImageWide")?.url || "",
-        thumbnail: game.keyImages?.find(img => img.type === "Thumbnail")?.url || "",
+        image: getValidImageByType(game.title, game.keyImages, 'OfferImageWide'),
+        thumbnail: getValidImageByType(game.title, game.keyImages, 'Thumbnail'),
         url: game.productSlug
           ? `https://store.epicgames.com/fr/p/${game.productSlug}`
           : "https://store.epicgames.com/fr/free-games",
