@@ -28,9 +28,13 @@ npm install
 ### Exemple simple (`test.js`)
 
 ```js
-const { getEpicFreeGames } = require('./index');
+const { getEpicFreeGames } = require("epic-games-free");
+const guildConfig = {
+  country: "FR", // ou récupéré dynamiquement via `configs[guildId]`
+  locale: "fr-FR"
+};
 
-getEpicFreeGames({ country: 'FR', locale: 'fr', includeAll: false })
+getEpicFreeGames({ guildConfig });
   .then(({ currentGames, nextGames }) => {
     console.log('🎮 Jeux gratuits actuels :', currentGames.length);
     console.log('⏳ Jeux à venir :', nextGames.length);
