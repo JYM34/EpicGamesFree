@@ -1,7 +1,11 @@
 const { getEpicFreeGames } = require("./index");
+const guildConfig = {
+  country: "FR", // ou récupéré dynamiquement via `configs[guildId]`
+  locale: "fr-FR"
+};
 
 // Exemple d'utilisation
-getEpicFreeGames({ country: 'FR', locale: 'fr', includeAll: false })
+getEpicFreeGames({ guildConfig })
   .then((response) => {
     const elements = response || {};
 
