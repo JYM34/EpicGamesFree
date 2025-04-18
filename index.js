@@ -80,8 +80,8 @@ async function getEpicFreeGames(options = {}) {
       description: game.description,
       author: game.seller?.name || "Inconnu",
       offerType: game.offerType || "",
-      url: game.productSlug
-        ? `https://store.epicgames.com/${locale.split('-')[0]}/p/${game.productSlug}`
+      url: game.catalogNs?.mappings?.[0]?.pageSlug
+        ? `https://store.epicgames.com/${locale.split('-')[0]}/p/${game.catalogNs.mappings[0].pageSlug}`
         : `https://store.epicgames.com/${locale.split('-')[0]}/free-games`,
       effectiveDate: promo?.startDate || game.effectiveDate,
       expiryDate: promo?.endDate || game.expiryDate,
