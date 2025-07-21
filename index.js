@@ -47,7 +47,7 @@ async function getEpicFreeGames(options = {}) {
   const elements = response?.data?.data?.Catalog?.searchStore?.elements || [];
 
   // 🧪 Fonctions utilitaires de filtrage
-  const isBaseGame = (game) => includeAll || game.offerType === 'BASE_GAME' || game.offerType === 'OTHERS';
+  const isBaseGame = (game) => includeAll || game.offerType === 'BASE_GAME' || game.offerType === 'OTHERS' || game.offerType === 'EDITION';
   const isFree = (game) => game.price?.totalPrice?.discountPrice === 0;
 
   const hasCurrentPromotion = (game) => {
