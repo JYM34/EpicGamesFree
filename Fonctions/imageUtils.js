@@ -11,7 +11,7 @@ const getValidImageByType = (title, keyImages, validType) => {
 
     // 🎭 Gestion spéciale "Mystery Game"
     if (isMysteryGame(title)) {
-        const mysteryImage = "https://ftp.nkconcept.fr/jeux-mystere.png"; // Ton placeholder custom
+        const mysteryImage = "https://cdn2.unrealengine.com/egs-mystery-game-logo-secondary-1920x1080-579566970.jpg"; // Ton placeholder custom
         imageCache.set(cacheKey, mysteryImage);
         return mysteryImage;
     }
