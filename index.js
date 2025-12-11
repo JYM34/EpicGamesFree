@@ -3,29 +3,21 @@
 // 📦 Dépendances
 const axios = require('axios');
 const dayjs = require('dayjs');
-const { getValidImageByType } = require('./Fonctions/imageUtils');
+// On importe ta super fonction d'image
+const { getValidImageByType } = require('./Fonctions/imageUtils'); 
 
-// ⚙️ Fallback par défaut
 const defaultOptions = {
   country: 'FR',
   locale: 'fr-FR',
   includeAll: false
 };
 
-// 🧠 Cache mémoire
-let cache = {
-  data: null,
-  timestamp: 0
-};
-const CACHE_DURATION = 1000 * 60 * 5; // 5 minutes
+let cache = { data: null, timestamp: 0 };
+const CACHE_DURATION = 1000 * 60 * 5; 
 
-/**
- * 🎮 Récupère les jeux gratuits d'Epic Games
- */
 async function getEpicFreeGames(options = {}) {
   const now = Date.now();
 
-  // ✅ Utilisation du cache
   if (cache.data && (now - cache.timestamp < CACHE_DURATION)) {
     return cache.data;
   }
@@ -34,14 +26,12 @@ async function getEpicFreeGames(options = {}) {
   const country = guildConfig.country || defaultOptions.country;
   const locale = guildConfig.locale || defaultOptions.locale;
 
-  // 🌐 Requête API
   const response = await axios.get('https://store-site-backend-static.ak.epicgames.com/freeGamesPromotions', {
     params: { country, locale }
   });
 
   const elements = response?.data?.data?.Catalog?.searchStore?.elements || [];
 
-  // 🧪 Filtres
   const isBaseGame = (game) => includeAll || game.offerType === 'BASE_GAME' || game.offerType === 'OTHERS' || game.offerType === 'EDITION';
   const isFree = (game) => game.price?.totalPrice?.discountPrice === 0;
 
@@ -51,11 +41,11 @@ async function getEpicFreeGames(options = {}) {
     return dayjs().isAfter(promo.startDate) && dayjs().isBefore(promo.endDate);
   };
 
-  // 🛠️ CORRECTION ICI : On veut juste savoir si ça commence dans le futur
+  // ✅ CORRECTION 1 : La logique simplifiée pour les jeux futurs (fonctionne pour les jeux quotidiens)
   const hasUpcomingPromotion = (game) => {
     const promo = game.promotions?.upcomingPromotionalOffers?.[0]?.promotionalOffers?.[0];
     if (!promo) return false;
-    // On garde simplement ceux dont la date de début est après "maintenant"
+    // On prend tout ce qui commence dans le futur
     return dayjs(promo.startDate).isAfter(dayjs());
   };
 
@@ -64,7 +54,6 @@ async function getEpicFreeGames(options = {}) {
     return promo?.discountSetting?.discountPercentage === 0;
   };
 
-  // 🎨 Formatage
   const formatGame = (game, status, color) => {
     const promo =
       game.promotions?.promotionalOffers?.[0]?.promotionalOffers?.[0] ||
@@ -72,7 +61,7 @@ async function getEpicFreeGames(options = {}) {
 
     return {
       title: game.title,
-      description: game.description,
+      description: game.description, // Tu peux personnaliser ici si tu veux changer la description des jeux mystères
       author: game.seller?.name || "Inconnu",
       offerType: game.offerType || "",
       url: game.catalogNs?.mappings?.[0]?.pageSlug
@@ -80,34 +69,31 @@ async function getEpicFreeGames(options = {}) {
         : `https://store.epicgames.com/${locale.split('-')[0]}/free-games`,
       effectiveDate: promo?.startDate || game.effectiveDate,
       expiryDate: promo?.endDate || game.expiryDate,
+      
+      // ✅ APPEL DE TON SCRIPT D'IMAGES
+      // Il va gérer tout seul le cas "Mystery" grâce à ton if(isMysteryGame)
       thumbnail: getValidImageByType(game.title, game.keyImages, 'Thumbnail'),
-      price: game.price?.totalPrice?.fmtPrice?.discountPrice || '0',
       image: getValidImageByType(game.title, game.keyImages, 'OfferImageWide'),
+      
+      price: game.price?.totalPrice?.fmtPrice?.discountPrice || '0',
       status,
       color
     };
   };
 
-  // 🎮 Jeux actuels
   const currentGames = elements
     .filter(game => isBaseGame(game) && isFree(game) && hasCurrentPromotion(game))
     .map(game => formatGame(game, 'currentGames', 0x3498db));
 
-  // 🕒 Jeux futurs
   const nextGames = elements
     .filter(game => isBaseGame(game) && willBeFree(game) && hasUpcomingPromotion(game))
     .map(game => formatGame(game, 'nextGames', 0x9b59b6))
-    // 🛠️ AJOUT DE SÉCURITÉ : Tri par date croissante (le plus proche en premier)
+    // ✅ CORRECTION 2 : Le tri indispensable pour ne pas sauter le Mystery Game 1
     .sort((a, b) => new Date(a.effectiveDate) - new Date(b.effectiveDate));
 
   const result = { currentGames, nextGames };
 
-  // 🧠 Mise à jour cache
-  cache = {
-    data: result,
-    timestamp: now
-  };
-
+  cache = { data: result, timestamp: now };
   return result;
 }
 
