@@ -11,18 +11,22 @@ const getValidImageByType = (title, keyImages, validType) => {
 
     // 🎭 Gestion spéciale "Mystery Game"
     if (isMysteryGame(title)) {
-        const mysteryImage = "https://cdn2.unrealengine.com/egs-mystery-game-logo-secondary-1920x1080-579566970.jpg"; // Ton placeholder custom
+        // ✅ ICI : Le lien officiel du teaser de Noël 2025 (extrait de ton JSON)
+        const mysteryImage = "https://cdn1.epicgames.com/offer/d5241c76f178492ea1540fce45616757/Holiday25_FreeGames_Teaser_2560x1440_2560x1440-012542ce76be0f7521af765ba97d3453"; 
+        
         imageCache.set(cacheKey, mysteryImage);
         return mysteryImage;
     }
 
     if (!keyImages || !Array.isArray(keyImages) || keyImages.length === 0) {
         console.warn(`${localDateTime} : ${title} ==> ⚠️ Aucune image disponible (tableau vide ou invalide).`);
-        const fallback = "https://ftp.nkconcept.fr/jeux-mystere.png";
+        // Tu peux aussi mettre le lien Epic ici en fallback global si tu veux
+        const fallback = "https://cdn1.epicgames.com/offer/d5241c76f178492ea1540fce45616757/Holiday25_FreeGames_Teaser_2560x1440_2560x1440-012542ce76be0f7521af765ba97d3453";
         imageCache.set(cacheKey, fallback);
         return fallback;
     }
 
+    // ... le reste de ton code reste identique ...
     const priorityTypes = [validType, "DieselStoreFrontTall",  "DieselStoreFrontWide", "VaultClosed", "featuredMedia"];
     for (const type of priorityTypes) {
         const found = keyImages.find(img => img?.type === type);
@@ -33,9 +37,10 @@ const getValidImageByType = (title, keyImages, validType) => {
     }
 
     console.warn(`${localDateTime} : ${title} ==> ⚠️ Aucune image valide trouvée parmi : ${priorityTypes.join(', ')}`);
-    console.table(keyImages.map(img => ({ "Type d'image": img.type, "URL": img.url })));
+    // console.table(...) // Optionnel pour le debug
 
-    const fallback = "https://ftp.nkconcept.fr/jeux-mystere.png";
+    // Fallback final
+    const fallback = "https://cdn1.epicgames.com/offer/d5241c76f178492ea1540fce45616757/Holiday25_FreeGames_Teaser_2560x1440_2560x1440-012542ce76be0f7521af765ba97d3453";
     imageCache.set(cacheKey, fallback);
     return fallback;
 };
