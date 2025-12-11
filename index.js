@@ -5,7 +5,7 @@ const axios = require('axios');
 const dayjs = require('dayjs');
 const { getValidImageByType } = require('./Fonctions/imageUtils');
 
-// ⚙️ Fallback par défaut (en cas d’absence de config serveur)
+// ⚙️ Fallback par défaut
 const defaultOptions = {
   country: 'FR',
   locale: 'fr-FR',
@@ -20,33 +20,28 @@ let cache = {
 const CACHE_DURATION = 1000 * 60 * 5; // 5 minutes
 
 /**
- * 🎮 Récupère les jeux gratuits d'Epic Games (avec config serveur personnalisée)
- * @param {Object} options - Peut contenir : guildConfig, includeAll
- * @returns {Object} - Liste des currentGames et nextGames
+ * 🎮 Récupère les jeux gratuits d'Epic Games
  */
 async function getEpicFreeGames(options = {}) {
   const now = Date.now();
 
-  // ✅ Utilisation du cache si encore valable
+  // ✅ Utilisation du cache
   if (cache.data && (now - cache.timestamp < CACHE_DURATION)) {
     return cache.data;
   }
 
-  // 🔧 Extraction des paramètres personnalisés ou fallback
   const { guildConfig = {}, includeAll = false } = options;
-
-  // 🌍 Pays + langue à utiliser
   const country = guildConfig.country || defaultOptions.country;
   const locale = guildConfig.locale || defaultOptions.locale;
 
-  // 🌐 Requête vers l’API Epic Games
+  // 🌐 Requête API
   const response = await axios.get('https://store-site-backend-static.ak.epicgames.com/freeGamesPromotions', {
     params: { country, locale }
   });
 
   const elements = response?.data?.data?.Catalog?.searchStore?.elements || [];
 
-  // 🧪 Fonctions utilitaires de filtrage
+  // 🧪 Filtres
   const isBaseGame = (game) => includeAll || game.offerType === 'BASE_GAME' || game.offerType === 'OTHERS' || game.offerType === 'EDITION';
   const isFree = (game) => game.price?.totalPrice?.discountPrice === 0;
 
@@ -56,10 +51,12 @@ async function getEpicFreeGames(options = {}) {
     return dayjs().isAfter(promo.startDate) && dayjs().isBefore(promo.endDate);
   };
 
+  // 🛠️ CORRECTION ICI : On veut juste savoir si ça commence dans le futur
   const hasUpcomingPromotion = (game) => {
     const promo = game.promotions?.upcomingPromotionalOffers?.[0]?.promotionalOffers?.[0];
     if (!promo) return false;
-    return dayjs().add(1, 'week').isAfter(promo.startDate) && dayjs().add(1, 'week').isBefore(promo.endDate);
+    // On garde simplement ceux dont la date de début est après "maintenant"
+    return dayjs(promo.startDate).isAfter(dayjs());
   };
 
   const willBeFree = (game) => {
@@ -67,9 +64,7 @@ async function getEpicFreeGames(options = {}) {
     return promo?.discountSetting?.discountPercentage === 0;
   };
 
-  /**
-   * 🎨 Formatte un jeu avec les données utiles pour Discord ou UI
-   */
+  // 🎨 Formatage
   const formatGame = (game, status, color) => {
     const promo =
       game.promotions?.promotionalOffers?.[0]?.promotionalOffers?.[0] ||
@@ -93,19 +88,21 @@ async function getEpicFreeGames(options = {}) {
     };
   };
 
-  // 🎮 Jeux gratuits disponibles maintenant
+  // 🎮 Jeux actuels
   const currentGames = elements
     .filter(game => isBaseGame(game) && isFree(game) && hasCurrentPromotion(game))
-    .map(game => formatGame(game, 'currentGames', 0x3498db)); // 💙
+    .map(game => formatGame(game, 'currentGames', 0x3498db));
 
-  // 🕒 Jeux qui seront gratuits bientôt
+  // 🕒 Jeux futurs
   const nextGames = elements
     .filter(game => isBaseGame(game) && willBeFree(game) && hasUpcomingPromotion(game))
-    .map(game => formatGame(game, 'nextGames', 0x9b59b6)); // 💜
+    .map(game => formatGame(game, 'nextGames', 0x9b59b6))
+    // 🛠️ AJOUT DE SÉCURITÉ : Tri par date croissante (le plus proche en premier)
+    .sort((a, b) => new Date(a.effectiveDate) - new Date(b.effectiveDate));
 
   const result = { currentGames, nextGames };
 
-  // 🧠 Mise à jour du cache
+  // 🧠 Mise à jour cache
   cache = {
     data: result,
     timestamp: now
